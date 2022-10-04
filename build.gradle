@@ -1,0 +1,104 @@
+buildscript {
+    ext {
+        springBootVersion = '2.6.2'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE"
+    }
+}
+
+
+subprojects {
+    group 'com.aws'
+    version '1.0'
+
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    sourceCompatibility = 8
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:3.1.0'
+        implementation 'org.springframework.kafka:spring-kafka:2.8.0'
+        implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+        implementation 'org.postgresql:postgresql:42.3.1'
+
+        implementation 'com.amazonaws:aws-java-sdk:1.12.314'
+
+        implementation 'com.amazonaws:aws-java-sdk-s3:1.12.305'
+        implementation 'com.amazonaws:aws-java-sdk-rekognition:1.12.305'
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        implementation 'org.modelmapper:modelmapper:2.4.5'
+        developmentOnly 'org.springframework.boot:spring-boot-devtools'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        runtimeOnly 'com.h2database:h2:1.3.176'
+
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+project(':boot') {
+    dependencies {
+        implementation project(':presentation')
+        implementation project(':application')
+        implementation project(':domain')
+        implementation project(':infrastructure')
+    }
+
+    test {
+        exclude '**/*'
+        useJUnitPlatform()
+    }
+}
+
+project(':presentation') {
+    dependencies {
+        implementation project(':application')
+        implementation project(':domain')
+        testImplementation project(':boot')
+    }
+    bootJar { enabled = false }
+}
+
+project(':application') {
+    dependencies {
+        implementation project(':domain')
+    }
+    bootJar { enabled = false }
+}
+
+project(':domain') {
+    dependencies {
+        testImplementation project(':boot')
+    }
+    bootJar { enabled = false }
+}
+
+project(':infrastructure') {
+    dependencies {
+        implementation project(':domain')
+        testImplementation project(':boot')
+    }
+    bootJar { enabled = false }
+}

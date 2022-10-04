@@ -1,0 +1,26 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: demobooth-new
+
+  profiles:
+    active: prod
+#    active: local
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    hikari:
+      minimum-idle: 50
+      maximum-pool-size: 50
+
+
+### Logging Level
+logging:
+  level:
+    com.cloudlab.mvporderservice: DEBUG
+    org:
+      hibernate:
+        SQL: DEBUG

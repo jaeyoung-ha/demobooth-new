@@ -1,0 +1,36 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+      docker: 18
+    commands:
+      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - ACCOUNT_ID=256676158104
+      - AWS_REGION=ap-northeast-2
+      - IMAGE_NAME=$ECR_REPOSITORY:latest
+      - AWS_ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.12/2020-07-08/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin/kubectl
+      - mkdir ~/.kube
+      - aws eks --region $AWS_REGION update-kubeconfig --name eks-demo
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/
+  build:
+    commands:
+      - echo Build Starting on `date`
+      - echo Building with gradle...
+      - chmod +x ./gradlew
+      - ./gradlew build
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_NAME .
+      - docker tag $IMAGE_NAME $AWS_ECR_URI
+      - docker push $AWS_ECR_URI
+  post_build:
+    commands:
+      - kubectl apply -f ./deployment.yaml
+      - kubectl apply -f ./service.yaml

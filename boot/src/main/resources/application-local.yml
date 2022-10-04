@@ -1,0 +1,85 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: order-service
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    hikari:
+      minimum-idle: 50
+      maximum-pool-size: 50
+
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+      path: /h2-console
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
+
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092, 127.0.0.1:9093, 127.0.0.1:9094
+    topic:
+      order-event: order-event
+      cancel-event: cancel-event
+      dlq-event: dead-letter-event
+    consumer:
+      group-id: consumer-order
+
+### Micro Service Interface
+service:
+  product:
+    base-url: http://127.0.0.1:8200
+  pay:
+    base-url: http://127.0.0.1:8400
+
+### Logging Level
+logging:
+  level:
+    com.cloudlab.mvporderservice: DEBUG
+    org:
+      hibernate:
+        SQL: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+management.health.circuitbreakers.enabled: true
+
+resilience4j.retry:
+    configs:
+      default:
+        maxRetryAttempts: 5
+        waitDuration: 1s
+
+    instances:
+      getProductById:
+        baseConfig: default
+        ignoreExceptions:
+          - org.springframework.web.server.ResponseStatusException
+
+resilience4j.circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        minimumNumberofCalls: 5
+        waitDurationInOpenState: 10s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        permittedNumberOfCallsInHalfOpenState: 5
+        ignoreExceptions:
+          - org.springframework.web.server.ResponseStatusException
+
+      instances:
+        getProductById:
+          baseConfig: default
+          failureRateThreshold: 25
+          minimumNumberofCalls: 10

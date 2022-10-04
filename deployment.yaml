@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoapp-deployment
+  labels:
+    app: demoapp-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demoapp-service
+  template:
+    metadata:
+      labels:
+        app: demoapp-service
+    spec:
+      containers:
+      - name: demoapp-service
+        image: 256676158104.dkr.ecr.us-east-1.amazonaws.com/ecr-demobooth
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8100
+

@@ -1,0 +1,19 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.kafka:spring-kafka:2.8.0'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.h2database:h2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-spring-boot2
+    implementation 'io.github.resilience4j:resilience4j-spring-boot2:1.6.1'
+    implementation 'io.github.resilience4j:resilience4j-retry:1.6.1'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:1.6.1'
+
+
+}
+
+test {
+    useJUnitPlatform()
+}

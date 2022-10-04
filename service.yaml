@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demoapp-service-svc
+  labels:
+    app: demoapp-service-service
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /health-check/
+spec:
+  ports:
+    - port: 8100
+      targetPort: 8100
+      protocol: TCP
+  selector:
+    app: demoapp-service
+  type:
+    NodePort

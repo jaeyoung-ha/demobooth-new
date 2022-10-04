@@ -1,0 +1,38 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: demobooth
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    hikari:
+      minimum-idle: 50
+      maximum-pool-size: 50
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  datasource:
+    driver-class: org.postgresql.Driver
+    url: jdbc:postgresql://aurora-demobooth.cluster-cca7yl0sa16x.ap-northeast-2.rds.amazonaws.com:5432/postgres
+    username: postgres
+    password: test1357!
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+s3:
+  bucket-path: "demo-industry-week-2022"
+
+rekognition:
+  similarityThreshold: 70F
+
+
+### Logging Level
+logging:
+  level:
+    com.aws.demo: DEBUG
