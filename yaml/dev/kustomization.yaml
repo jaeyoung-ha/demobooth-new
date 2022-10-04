@@ -5,5 +5,5 @@ resources:
 - service.yaml
 images:
 - name: kustomization-eks-repository
-  newName: 499176689708.dkr.ecr.us-east-1.amazonaws.com/msa-order
-  newTag: DEV_demoapp-service_0a1128d5
+  newName: 256676158104.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-demobooth
+  newTag: DEV_demoapp_bb66a836
