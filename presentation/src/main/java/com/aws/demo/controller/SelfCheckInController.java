@@ -48,7 +48,7 @@ public class SelfCheckInController {
         BookingDto bookingDto = bookingService.getReservationByNickname(nickname);
         ResponseBooking result = new ModelMapper().map(bookingDto, ResponseBooking.class);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);  
     }
 
     @PostMapping("/booking/photo/{nickname}")
