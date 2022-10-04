@@ -1,0 +1,131 @@
+name: DEV - Deploy to Amazon EKS - Java Gradle
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+
+env:
+  # Organization Secrets
+  AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+  EKS_CLUSTER: ${{ secrets.DEV_EKS_CLUSTER_NAME }}
+  ECR_REPOSITORY: ${{ secrets.DEV_ECR_REPOSITORY }}
+  # Workflow 변수
+  # - 해상 서비스 및 애플리케이션에 맞게 수정 필요
+  APP_NAME: demoapp       # Application 이름. Image TAG Prefix로 사용 됨
+  AWS_REGION: ap-northeast-2   # ap-northeast-2      # AWS EKS & ECR이 위치한 AWS Region
+  DEPLOYMENT_NAME: demoapp-deployment      # Kubernetes Deployment 명
+  JAVA_VERSION : 8       # JAVA REF: https://github.com/marketplace/actions/setup-java-jdk
+  JAVA_DISTRIBUTION : adopt       # JAVA REF 링크를 참고하여 필요 Java 버전 및 Distribution을 설정
+  YAML_ENV : yaml/dev
+
+jobs:
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+    # 소스 가져오기
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # AWS credentials 설정
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    # AWS ECR 로그인
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+  
+    # sha 난수 생성
+    - name: Short sha
+      run: echo "short_sha=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
+
+    # Java 환경 구성
+    - name: Set up JDK
+      uses: actions/setup-java@v2.2.0
+      with:
+        distribution: ${{ env.JAVA_DISTRIBUTION }}
+        java-version: ${{ env.JAVA_VERSION }}
+
+    # Gradlew 환경 구성
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # Gradlew 빌드 수행
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    # Docker 빌드 및 ECR로 Push 진행
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: DEV_${{ env.APP_NAME }}
+      run: |
+        docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_${{ env.short_sha }} -f Dockerfile .
+        docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_${{ env.short_sha }}
+        docker tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_${{ env.short_sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_latest
+        docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_latest
+        echo "::set-output name=image::${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_${{ env.short_sha }}"
+  deploy:
+    needs: build
+    name: Deploy to DEV Environment
+    runs-on: ubuntu-latest
+    
+    steps:    
+    # 소스 가져오기
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # AWS credentials 설정
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    # AWS ECR 로그인
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # sha 난수 생성
+    - name: Short sha
+      run: echo "short_sha=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
+
+    # EKS 배포를 위한 Kubeconfig 설정
+    - name: Setup kubeconfig
+      id: setup-kubeconfig
+      run: |
+        aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
+    # EKS로 배포
+    # - $YAML_ENV경로에 올라와있는 yaml 파일 기준으로, 현재 EKS에 업데이트할 부분이 있으면 신규배포되고 변경점이 없으면 배포하지 않음
+    # - 일반적인 케이스에서는 윗 단계에서 빌드된 image만 변경 배포됨
+    # - 기존 yaml의 변경배포가 필요할 경우, $YAML_ENV 경로에 있는 yaml을 변경하고 workflow를 동작시키면 변경 배포 됨
+    # - 추가 yaml 배포가 필요할 경우, $YAML_ENV 경로에 파일 적재 후, 
+    # - 동일 경로 kustomize.yml의 resources 목록에 추가 yaml을 등록하고 workflow를 동작시키면 추가 배포 됨
+    - name: Deploy to EKS
+      id: deploy-eks
+      env: 
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: DEV_${{ env.APP_NAME }}
+      run: |-
+        cd $YAML_ENV
+        kustomize edit set image kustomization-eks-repository=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}_${{ env.short_sha }}
+        kustomize build .
+        cat kustomization.yaml
+    - name: Commit files
+      run: |
+        git config --global user.email "jyoungha@github.com"
+        git config --global user.name "github-actions"
+        git commit -am "Update image tag"
+        git push -u origin main
