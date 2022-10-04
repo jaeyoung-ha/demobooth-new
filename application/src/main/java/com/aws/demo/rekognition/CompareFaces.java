@@ -24,7 +24,7 @@ public class CompareFaces {
         String sourceImage = sourceImg;
         String targetImage = targetImg;
 
-        AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
+        AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.standard().withRegion(Regions.AP_NORTHEAST_2).build();
 
         Image source = new Image().withS3Object((new S3Object().withName(sourceImage).withBucket(s3_bucket)));
         Image target = new Image().withS3Object((new S3Object().withName(targetImage).withBucket(s3_bucket)));

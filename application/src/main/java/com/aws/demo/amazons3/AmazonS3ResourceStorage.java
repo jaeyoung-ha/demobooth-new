@@ -38,7 +38,7 @@ public class AmazonS3ResourceStorage {
 //    public void store(String fullPath, MultipartFile multipartFile) {
      public String store(MultipartFile multipartFile) {
         AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.US_EAST_1)
+                .withRegion(Regions.AP_NORTHEAST_2)
                 .build();
 
         String fileName = MultipartUtil.createFileName(multipartFile.getOriginalFilename());
