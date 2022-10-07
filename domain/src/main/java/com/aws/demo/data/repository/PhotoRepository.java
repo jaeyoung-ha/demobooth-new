@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface PhotoRepository extends CrudRepository<PhotoEntity, Long> {
 
-    @Query(value = "SELECT m.id, m.nickname, m.photo_img FROM photo m ORDER BY m.id DESC Limit 10", nativeQuery = true)
-    List<PhotoEntity> findPhotoTop10();
+    @Query(value = "SELECT m.id, m.booking_id, m.photo_img FROM photo m ORDER BY m.id DESC Limit 50", nativeQuery = true)
+    List<PhotoEntity> findPhotoTop50();
 
     PhotoEntity save(PhotoEntity reservationEntity);
 }

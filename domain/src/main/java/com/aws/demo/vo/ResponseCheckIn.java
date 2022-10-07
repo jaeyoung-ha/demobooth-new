@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseBooking {
+public class ResponseCheckIn {
     private String bookingId;
     private String nickname;
     private String arrival;

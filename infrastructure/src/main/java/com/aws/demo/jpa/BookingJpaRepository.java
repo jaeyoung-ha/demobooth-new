@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface BookingJpaRepository extends BookingRepository, CrudRepository<ReservationEntity, Long> {
 
     @Override
-    ReservationEntity findByNickname(String nickname);
+    ReservationEntity findByBookingId(String bookingId);
 
     @Override
     ReservationEntity save(ReservationEntity reservationEntity);

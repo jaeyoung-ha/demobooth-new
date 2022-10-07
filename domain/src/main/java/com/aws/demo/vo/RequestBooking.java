@@ -4,7 +4,11 @@ import lombok.Data;
 
 @Data
 public class RequestBooking {
+    private String nickname;
+
     private String departure;
+
+    private String arrival;
 
     private String departureDate;
 
@@ -14,9 +18,9 @@ public class RequestBooking {
 
     private Integer passengerChild;
 
-    private String nickname;
+    private String flightDeparture;
 
-    private String email;
+    private String flightArrival;
 
     private String checkinDate;
 
@@ -27,6 +31,4 @@ public class RequestBooking {
     private Integer hotelAdult;
 
     private Integer hotelChild;
-
-    private String phoneNum;
 }

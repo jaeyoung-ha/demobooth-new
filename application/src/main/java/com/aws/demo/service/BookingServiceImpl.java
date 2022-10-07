@@ -39,7 +39,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto createReserve(BookingDto bookingDto) {
         bookingDto.setBookingId(UUID.randomUUID().toString());
-
         ReservationEntity reservationEntity;
 
         // ToDo. 닉네임 or 이메일 중복체크
@@ -56,16 +55,16 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto getReservationByNickname(String nickname) {
-        ReservationEntity reservationEntity = bookingRepository.findByNickname(nickname);
+    public BookingDto getReserveByBookingId(String bookingId) {
+        ReservationEntity reservationEntity = bookingRepository.findByBookingId(bookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
 
         return bookingDto;
     }
 
     @Override
-    public BookingDto uploadPhoto(String nickname, MultipartFile multipartFile) {
-        ReservationEntity reservationEntity = bookingRepository.findByNickname(nickname);
+    public BookingDto uploadPhoto(String bookingId, MultipartFile multipartFile) {
+        ReservationEntity reservationEntity = bookingRepository.findByBookingId(bookingId);
 
         if (reservationEntity == null) {
             return null;
@@ -82,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(reservationEntity);
 
         PhotoEntity photoEntity = new PhotoEntity();
-        photoEntity.setNickname(nickname);
+        photoEntity.setBookingId(bookingId);
         photoEntity.setPhotoImg(fileName);
         photoRepository.save(photoEntity);
 
@@ -116,9 +115,10 @@ public class BookingServiceImpl implements BookingService {
         //2. Compare Face
         boolean isCompared = false;
 
-        List<PhotoEntity> photoList = photoRepository.findPhotoTop10();
+        List<PhotoEntity> photoList = photoRepository.findPhotoTop50();
+        String resultBookingId = "";
         String resultPhotoImg = "";
-        String resultPhotoNickname = "";
+
 
         for (PhotoEntity entity : photoList) {
             resultPhotoImg = entity.getPhotoImg();
@@ -127,13 +127,13 @@ public class BookingServiceImpl implements BookingService {
 
             if (isCompared) {
                 log.info("checkIn - success");
-                resultPhotoNickname = entity.getNickname();
+                resultBookingId = entity.getBookingId();
                 break;
             }
         }
 
         // 3. Query DB
-        ReservationEntity reservationEntity = bookingRepository.findByNickname(resultPhotoNickname);
+        ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
 
         return bookingDto;

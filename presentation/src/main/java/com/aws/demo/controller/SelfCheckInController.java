@@ -43,28 +43,26 @@ public class SelfCheckInController {
     }
 
     // http://127.0.0.1:0/demo-service/booking/{nickname}
-    @GetMapping("/booking/{nickname}")
-    public ResponseEntity<ResponseBooking> getReserve(@PathVariable("nickname") String nickname) {
-        BookingDto bookingDto = bookingService.getReservationByNickname(nickname);
+    @GetMapping("/booking/{bookingId}")
+    public ResponseEntity<ResponseBooking> getReserve(@PathVariable("bookingId") String bookingId) {
+        BookingDto bookingDto = bookingService.getReserveByBookingId(bookingId);
         ResponseBooking result = new ModelMapper().map(bookingDto, ResponseBooking.class);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);  
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    @PostMapping("/booking/photo/{nickname}")
-    public ResponseEntity<ResponseUploadPhoto> uploadPhoto(@PathVariable("nickname") String nickname, @RequestPart("file") MultipartFile multipartFile) {
-        BookingDto bookingDto = bookingService.uploadPhoto(nickname, multipartFile);
+    @PostMapping("/booking/photo/{bookingId}")
+    public ResponseEntity<ResponseUploadPhoto> uploadPhoto(@PathVariable("bookingId") String bookingId, @RequestPart("file") MultipartFile multipartFile) {
+        BookingDto bookingDto = bookingService.uploadPhoto(bookingId, multipartFile);
         ResponseUploadPhoto result = new ModelMapper().map(bookingDto, ResponseUploadPhoto.class);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-    @PostMapping("/checkin-air")
-    public ResponseEntity<ResponseCheckInAir> checkInAir(@RequestPart("file") MultipartFile multipartFile) {
+    @PostMapping("/checkin")
+    public ResponseEntity<ResponseCheckIn> checkInAir(@RequestPart("file") MultipartFile multipartFile) {
         BookingDto bookingDto = bookingService.checkIn(multipartFile);
-        ResponseCheckInAir result = new ModelMapper().map(bookingDto, ResponseCheckInAir.class);
-
-        log.info("/checkin-air - ResponseCheckInAir : " + result.getDeparture() + ", " + result.getDepartureDate());
+        ResponseCheckIn result = new ModelMapper().map(bookingDto, ResponseCheckIn.class);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }

@@ -1,9 +1,6 @@
 package com.aws.demo.data.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,13 +11,19 @@ import java.io.Serializable;
 public class ReservationEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @Column
     private String bookingId;
 
     @Column(nullable = false, length = 120)
+    private String nickname;
+
+    @Column(nullable = false, length = 120)
     private String departure;
+
+    @Column(nullable = false, length = 120)
+    private String arrival;
 
     @Column(nullable = false)
     private String departureDate;
@@ -35,10 +38,10 @@ public class ReservationEntity implements Serializable {
     private Integer passengerChild;
 
     @Column(nullable = false, length = 120)
-    private String nickname;
+    private String flightDeparture;
 
-    @Column(nullable = false)
-    private String email;
+    @Column(nullable = false, length = 120)
+    private String flightArrival;
 
     @Column(nullable = false)
     private String checkinDate;
@@ -54,9 +57,6 @@ public class ReservationEntity implements Serializable {
 
     @Column(nullable = false)
     private Integer hotelChild;
-
-    @Column(nullable = false)
-    private String phoneNum;
 
     @Column
     private String photoImg;

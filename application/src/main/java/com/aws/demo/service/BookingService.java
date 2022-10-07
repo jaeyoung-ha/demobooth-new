@@ -7,9 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface BookingService {
     BookingDto createReserve(BookingDto bookingDto);
 
-    BookingDto getReservationByNickname(String nickname);
+    BookingDto getReserveByBookingId(String bookingId);
 
-    BookingDto uploadPhoto(String nickname, MultipartFile multipartFile);
+    BookingDto uploadPhoto(String bookingId, MultipartFile multipartFile);
 
     String storeImg(MultipartFile multipartFile, PhotoConstants.PhotoType photoType);
 
