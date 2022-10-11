@@ -44,7 +44,7 @@ public class SelfCheckInController {
 
         return new ResponseEntity<>(
                 CommonReturnDto.<ResponseBooking>builder()
-                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : bookingDto.getErrCode())
                         .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
                         .data(responseBooking)
                         .build(),
@@ -57,7 +57,13 @@ public class SelfCheckInController {
         BookingDto bookingDto = bookingService.getReserveByBookingId(bookingId);
         ResponseBooking result = new ModelMapper().map(bookingDto, ResponseBooking.class);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return new ResponseEntity<>(
+                CommonReturnDto.<ResponseBooking>builder()
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : bookingDto.getErrCode())
+                        .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
+                        .data(responseBooking)
+                        .build(),
+                HttpStatus.OK);
     }
 
     @PostMapping("/booking/photo/{bookingId}")
@@ -67,7 +73,7 @@ public class SelfCheckInController {
 
         return new ResponseEntity<>(
                 CommonReturnDto.<ResponseUploadPhoto>builder()
-                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : bookingDto.getErrCode())
                         .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
                         .data(result)
                         .build(),
@@ -81,7 +87,7 @@ public class SelfCheckInController {
 
         return new ResponseEntity<>(
                 CommonReturnDto.<ResponseCheckIn>builder()
-                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : bookingDto.getErrCode())
                         .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
                         .data(result)
                         .build(),
