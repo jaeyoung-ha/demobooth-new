@@ -98,7 +98,7 @@ public class BookingServiceImpl implements BookingService {
         if (!isDetectFaces) {
             BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
             returnDto.setErrCode(StatusCodeConstants.badRequestCodeInvalidParam);
-            returnDto.setErrCode(StatusCodeConstants.badRequestDescInvalidParam);
+            returnDto.setErrMsg(StatusCodeConstants.badRequestDescInvalidParam);
 
             return returnDto;
         }
@@ -150,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
         if (!isDetectFaces) {
             BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
             returnDto.setErrCode(StatusCodeConstants.badRequestCodeInvalidParam);
-            returnDto.setErrCode(StatusCodeConstants.badRequestDescInvalidParam);
+            returnDto.setErrMsg(StatusCodeConstants.badRequestDescInvalidParam);
             return returnDto;
         }
 
