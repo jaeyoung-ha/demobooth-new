@@ -1,9 +1,12 @@
 package com.aws.demo.controller;
 
+import com.aws.demo.constants.StatusCodeConstants;
 import com.aws.demo.data.dto.BookingDto;
+import com.aws.demo.data.dto.CommonReturnDto;
 import com.aws.demo.service.BookingService;
 import com.aws.demo.vo.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.util.TextUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,7 @@ public class SelfCheckInController {
 
     // http://127.0.0.1:0/demo-service/booking
     @PostMapping("/booking")
-    public ResponseEntity<ResponseBooking> createReserve(@RequestBody RequestBooking bookingDetails) {
+    public ResponseEntity<CommonReturnDto<ResponseBooking>> createReserve(@RequestBody RequestBooking bookingDetails) {
 
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -39,7 +42,13 @@ public class SelfCheckInController {
 
         ResponseBooking responseBooking = mapper.map(bookingDto, ResponseBooking.class);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseBooking);
+        return new ResponseEntity<>(
+                CommonReturnDto.<ResponseBooking>builder()
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
+                        .data(responseBooking)
+                        .build(),
+                HttpStatus.OK);
     }
 
     // http://127.0.0.1:0/demo-service/booking/{nickname}
@@ -52,19 +61,31 @@ public class SelfCheckInController {
     }
 
     @PostMapping("/booking/photo/{bookingId}")
-    public ResponseEntity<ResponseUploadPhoto> uploadPhoto(@PathVariable("bookingId") String bookingId, @RequestPart("file") MultipartFile multipartFile) {
+    public ResponseEntity<CommonReturnDto<ResponseUploadPhoto>> uploadPhoto(@PathVariable("bookingId") String bookingId, @RequestPart("file") MultipartFile multipartFile) {
         BookingDto bookingDto = bookingService.uploadPhoto(bookingId, multipartFile);
         ResponseUploadPhoto result = new ModelMapper().map(bookingDto, ResponseUploadPhoto.class);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return new ResponseEntity<>(
+                CommonReturnDto.<ResponseUploadPhoto>builder()
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
+                        .data(result)
+                        .build(),
+                HttpStatus.OK);
     }
 
     @PostMapping("/checkin")
-    public ResponseEntity<ResponseCheckIn> checkInAir(@RequestPart("file") MultipartFile multipartFile) {
+    public ResponseEntity<CommonReturnDto<ResponseCheckIn>> checkIn(@RequestPart("file") MultipartFile multipartFile) {
         BookingDto bookingDto = bookingService.checkIn(multipartFile);
         ResponseCheckIn result = new ModelMapper().map(bookingDto, ResponseCheckIn.class);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return new ResponseEntity<>(
+                CommonReturnDto.<ResponseCheckIn>builder()
+                        .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.OK : bookingDto.getErrCode())
+                        .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
+                        .data(result)
+                        .build(),
+                HttpStatus.OK);
     }
 
     @PostMapping("/checkin-hotel")

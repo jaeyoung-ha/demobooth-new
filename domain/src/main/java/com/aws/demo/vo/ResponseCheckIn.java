@@ -16,4 +16,5 @@ public class ResponseCheckIn {
     private String roomType;
     private Integer hotelAdult;
     private Integer hotelChild;
+    private String photoImg;
 }

@@ -2,6 +2,7 @@ package com.aws.demo.service;
 
 import com.aws.demo.amazons3.AmazonS3ResourceStorage;
 import com.aws.demo.constants.PhotoConstants;
+import com.aws.demo.constants.StatusCodeConstants;
 import com.aws.demo.data.dto.BookingDto;
 import com.aws.demo.data.entity.PhotoEntity;
 import com.aws.demo.data.entity.ReservationEntity;
@@ -10,8 +11,10 @@ import com.aws.demo.data.repository.PhotoRepository;
 import com.aws.demo.rekognition.CompareFaces;
 import com.aws.demo.utils.DtoUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -37,6 +40,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto createReserve(BookingDto bookingDto) {
         bookingDto.setBookingId(UUID.randomUUID().toString());
         ReservationEntity reservationEntity;
@@ -63,20 +67,45 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto uploadPhoto(String bookingId, MultipartFile multipartFile) {
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(bookingId);
 
         if (reservationEntity == null) {
-            return null;
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
+            return returnDto;
         }
 
-        log.info("uploadPhoto - start");
+        log.info("uploadPhoto - start bId : " + bookingId);
+
         // 1. Store Image file to S3
         String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.REGISTER);
+        if (TextUtils.isEmpty(fileName)) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
+            return returnDto;
+        }
+
+        log.info("uploadPhoto - fileName : " + fileName);
+
+        // 2. Check Face Detect
+        boolean isDetectFaces = compareFaces.detectFacesinImage(fileName);
+        log.info("uploadPhoto - isDetectFaces : " + isDetectFaces);
+
+        if (!isDetectFaces) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.badRequestCodeInvalidParam);
+            returnDto.setErrCode(StatusCodeConstants.badRequestDescInvalidParam);
+
+            return returnDto;
+        }
 
         log.info("uploadPhoto - s3 upload complete");
 
-        // 2. Update DB - photo Img
+        // 3. Update DB - photo Img
         reservationEntity.setPhotoImg(fileName);
         bookingRepository.save(reservationEntity);
 
@@ -84,7 +113,6 @@ public class BookingServiceImpl implements BookingService {
         photoEntity.setBookingId(bookingId);
         photoEntity.setPhotoImg(fileName);
         photoRepository.save(photoEntity);
-
 
         log.info("uploadPhoto - db update complete");
 
@@ -97,22 +125,36 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public String storeImg(MultipartFile multipartFile, PhotoConstants.PhotoType photoType) {
-//        FileDetail fileDetail = FileDetail.multipartOf(multipartFile, photoType);
-//        log.info("storeImg - fileDetail.getPath() : " + fileDetail.getPath());
-//        amazonS3ResourceStorage.store(fileDetail.getPath(), multipartFile);
-
         String fileName = amazonS3ResourceStorage.store(multipartFile);
 
         return fileName;
     }
 
     @Override
+    @Transactional
     public BookingDto checkIn(MultipartFile multipartFile) {
         // 1. Check-In - Upload Photo
-        String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.CHECKIN_AIR);
+        String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.CHECKIN);
         log.info("checkIn - sourceFile : " + fileName);
+        if (TextUtils.isEmpty(fileName)) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
+            return returnDto;
+        }
 
-        //2. Compare Face
+        // 2. Check Face Detect
+        boolean isDetectFaces = compareFaces.detectFacesinImage(fileName);
+        log.info("uploadPhoto - isDetectFaces : " + isDetectFaces);
+
+        if (!isDetectFaces) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.badRequestCodeInvalidParam);
+            returnDto.setErrCode(StatusCodeConstants.badRequestDescInvalidParam);
+            return returnDto;
+        }
+
+        //3. Compare Face
         boolean isCompared = false;
 
         List<PhotoEntity> photoList = photoRepository.findPhotoTop50();
@@ -135,7 +177,10 @@ public class BookingServiceImpl implements BookingService {
         // 3. Query DB
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
-
+        if (!isCompared || TextUtils.isEmpty(resultBookingId)) {
+            bookingDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
+            bookingDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
+        }
         return bookingDto;
     }
 }

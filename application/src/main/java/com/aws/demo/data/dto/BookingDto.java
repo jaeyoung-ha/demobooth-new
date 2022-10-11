@@ -28,4 +28,7 @@ public class BookingDto implements Serializable {
     private Integer hotelAdult;
     private Integer hotelChild;
     private String photoImg;
+
+    private String errCode;
+    private String errMsg;
 }

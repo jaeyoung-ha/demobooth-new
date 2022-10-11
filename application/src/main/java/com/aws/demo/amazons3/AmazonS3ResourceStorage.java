@@ -51,7 +51,9 @@ public class AmazonS3ResourceStorage {
         try (InputStream inputStream = multipartFile.getInputStream()) {
             s3Client.putObject(bucket, fileName, inputStream, objectMetadata);
         } catch (IOException e) {
-            throw new IllegalArgumentException(String.format("Exception : %s", e.getMessage()));
+            //throw new IllegalArgumentException(String.format("Exception : %s", e.getMessage()));
+            log.error("store() - occurred IllegalArgumentException");
+            fileName = "";
         }
 
         return fileName;
