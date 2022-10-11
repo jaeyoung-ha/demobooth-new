@@ -52,11 +52,8 @@ public class MultipartUtil {
         String getSubDir = "register";
 
         switch (photoType) {
-            case CHECKIN_AIR:
-                getSubDir = "checkin-air";
-                break;
-            case CHECKIN_HOTEL:
-                getSubDir = "checkin-hotel";
+            case CHECKIN:
+                getSubDir = "checkin";
                 break;
             default:
                 getSubDir = "register";
