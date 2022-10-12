@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class PhotoDto implements Serializable {
+public class UploadPhotoDto implements Serializable {
     private String nickname;
     private String photoImg;
 }

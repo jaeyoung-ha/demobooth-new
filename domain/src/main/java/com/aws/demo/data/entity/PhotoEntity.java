@@ -19,6 +19,9 @@ public class PhotoEntity implements Serializable {
     @Column(nullable = false, length = 120)
     private String bookingId;
 
-    @Column
+    @Column(nullable = false)
     private String photoImg;
+
+    @Column(nullable = false)
+    private Integer checkIn;
 }

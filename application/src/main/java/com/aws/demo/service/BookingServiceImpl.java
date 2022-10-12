@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,6 +112,7 @@ public class BookingServiceImpl implements BookingService {
 
         PhotoEntity photoEntity = new PhotoEntity();
         photoEntity.setBookingId(bookingId);
+        photoEntity.setCheckIn(0);
         photoEntity.setPhotoImg(fileName);
         photoRepository.save(photoEntity);
 
@@ -174,14 +176,39 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        // 3. Query DB
+
+
+        // 3. Query from Reservation DB
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
         if (!isCompared || TextUtils.isEmpty(resultBookingId)) {
             bookingDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
             bookingDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
+            return bookingDto;
         }
+
+        // 4. Update to Photo DB
+        try {
+            PhotoEntity photoEntity = photoRepository.findByBookingId(resultBookingId);
+            photoEntity.setCheckIn(1);
+            photoRepository.save(photoEntity);
+        } catch (Exception e) {
+            log.error("checkIn - Occurred Exception!!");
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeDatabaseFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescDatabaseFail);
+            return returnDto;
+        }
+
         return bookingDto;
+    }
+
+    @Override
+    public byte[] getPhoto(String filename) throws IOException {
+        byte[] photoImg = amazonS3ResourceStorage.getFile(filename);
+
+        return photoImg;
+
     }
 }
 

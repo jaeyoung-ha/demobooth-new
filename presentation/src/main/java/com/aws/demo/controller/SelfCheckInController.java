@@ -11,10 +11,14 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @Slf4j
@@ -103,6 +107,57 @@ public class SelfCheckInController {
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
+
+    @GetMapping("/getPhoto/{filename}")
+    public ResponseEntity<byte[]> getPhoto(@PathVariable("filename") String filename) {
+        log.info("/getPhoto - filename : " + filename);
+
+        byte[] photoImg = new byte[0];
+
+        try {
+            photoImg = bookingService.getPhoto(filename);
+        } catch (IOException e) {
+            log.error("/getPhoto occurred IOException");
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+
+        return new ResponseEntity<>(photoImg, headers, HttpStatus.OK);
+    }
+
+/*
+    @GetMapping("/getPhoto/{filename}")
+    public ResponseEntity<CommonReturnDto<ResponseGetPhoto>> getPhoto(@PathVariable("filename") String filename) {
+        GetPhotoDto getPhotoDto = new GetPhotoDto();
+
+        log.info("/getPhoto - filename : " + filename);
+
+        try {
+            getPhotoDto.setPhotoImg(bookingService.getPhoto(filename));
+        } catch (IOException e) {
+            log.error("/getPhoto occurred IOException");
+            getPhotoDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageDownloadFail);
+            getPhotoDto.setErrCode(StatusCodeConstants.serverErrorDescStorageDownloadFail);
+        }
+        ResponseGetPhoto responseGetPhoto = new ModelMapper().map(getPhotoDto, ResponseGetPhoto.class);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+
+        return new ResponseEntity<>(
+                CommonReturnDto.<ResponseGetPhoto>builder()
+                        .statusCode(TextUtils.isEmpty(getPhotoDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : getPhotoDto.getErrCode())
+                        .statusMsg(TextUtils.isEmpty(getPhotoDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : getPhotoDto.getErrMsg())
+                        .data(responseGetPhoto)
+                        .build(),
+                headers,
+                HttpStatus.OK);
+
+//        ResponseEntity<byte[]> result = new ResponseEntity<>(getPhotoDto.getPhotoImg(), headers, HttpStatus.OK);
+//        return result;
+    }
+ */
+
 
     @DeleteMapping("/booking/{nickname}")
     public String deleteOrder(@PathVariable("nickname") String nickname) {

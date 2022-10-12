@@ -15,4 +15,10 @@ public final class StatusCodeConstants {
     public static String serverErrorCodeRekognitionMatchFail = "50005001";
     public static String serverErrorDescRekognitionMatchFail = "Failed to match for Rekognition";
 
+    public static String serverErrorCodeDatabaseFail = "50005002";
+    public static String serverErrorDescDatabaseFail = "Failed to load from database";
+
+    public static String serverErrorCodeStorageDownloadFail = "50005003";
+    public static String serverErrorDescStorageDownloadFail = "Failed to get image";
+
 }
