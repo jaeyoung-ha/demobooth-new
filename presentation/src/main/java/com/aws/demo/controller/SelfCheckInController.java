@@ -57,15 +57,15 @@ public class SelfCheckInController {
 
     // http://127.0.0.1:0/demo-service/booking/{nickname}
     @GetMapping("/booking/{bookingId}")
-    public ResponseEntity<CommonReturnDto<ResponseBooking>> getReserve(@PathVariable("bookingId") String bookingId) {
+    public ResponseEntity<CommonReturnDto<ResponseGetInfo>> getReserve(@PathVariable("bookingId") String bookingId) {
         BookingDto bookingDto = bookingService.getReserveByBookingId(bookingId);
-        ResponseBooking responseBooking = new ModelMapper().map(bookingDto, ResponseBooking.class);
+        ResponseGetInfo responseGetInfo = new ModelMapper().map(bookingDto, ResponseGetInfo.class);
 
         return new ResponseEntity<>(
-                CommonReturnDto.<ResponseBooking>builder()
+                CommonReturnDto.<ResponseGetInfo>builder()
                         .statusCode(TextUtils.isEmpty(bookingDto.getErrCode()) ? StatusCodeConstants.okCodeRequestSuccess : bookingDto.getErrCode())
                         .statusMsg(TextUtils.isEmpty(bookingDto.getErrMsg()) ? StatusCodeConstants.okDescRequestSuccess : bookingDto.getErrMsg())
-                        .data(responseBooking)
+                        .data(responseGetInfo)
                         .build(),
                 HttpStatus.OK);
     }
