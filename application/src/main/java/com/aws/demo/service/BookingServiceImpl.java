@@ -177,11 +177,11 @@ public class BookingServiceImpl implements BookingService {
         }
 
 
-
         // 3. Query from Reservation DB
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
         if (!isCompared || TextUtils.isEmpty(resultBookingId)) {
+            log.info("checkIn Fail!");
             bookingDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
             bookingDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
             return bookingDto;
@@ -211,4 +211,3 @@ public class BookingServiceImpl implements BookingService {
 
     }
 }
-

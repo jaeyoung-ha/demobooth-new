@@ -114,13 +114,18 @@ public class SelfCheckInController {
 
         byte[] photoImg = new byte[0];
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+
+        if (TextUtils.isEmpty(filename) || "undefined".equals(filename)) {
+            return new ResponseEntity<>(photoImg, headers, HttpStatus.OK);
+        }
+
         try {
             photoImg = bookingService.getPhoto(filename);
         } catch (IOException e) {
             log.error("/getPhoto occurred IOException");
         }
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_JPEG);
 
         return new ResponseEntity<>(photoImg, headers, HttpStatus.OK);
     }

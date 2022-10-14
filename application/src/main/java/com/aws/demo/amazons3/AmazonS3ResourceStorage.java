@@ -3,10 +3,7 @@ package com.aws.demo.amazons3;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import com.aws.demo.utils.MultipartUtil;
 import lombok.RequiredArgsConstructor;
@@ -54,11 +51,19 @@ public class AmazonS3ResourceStorage {
                 .withRegion(Regions.AP_NORTHEAST_2)
                 .build();
 
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, filename);
-        S3Object s3Object = s3Client.getObject(getObjectRequest);
-        S3ObjectInputStream objectInputStream = s3Object.getObjectContent();
+        byte[] result = new byte[0];
 
-        byte[] result = IOUtils.toByteArray(objectInputStream);
+        try {
+            GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, filename);
+            S3Object s3Object = s3Client.getObject(getObjectRequest);
+            S3ObjectInputStream objectInputStream = s3Object.getObjectContent();
+
+            result = IOUtils.toByteArray(objectInputStream);
+        } catch (AmazonS3Exception e) {
+            log.error("getFile() - occurred AmazonS3Exception");
+            return new byte[0];
+        }
+
 
         return result;
     }
