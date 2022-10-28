@@ -169,16 +169,16 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // 2-1. Check for Covered Mask
-        boolean isDetectMask = compareFaces.detectPPE(fileName);
-        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
-
-        if (isDetectMask) {
-            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
-            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
-            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
-
-            return returnDto;
-        }
+//        boolean isDetectMask = compareFaces.detectPPE(fileName);
+//        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
+//
+//        if (isDetectMask) {
+//            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+//            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
+//            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
+//
+//            return returnDto;
+//        }
 
         //3. Compare Face
         Float faceSimilarity = 0F;
