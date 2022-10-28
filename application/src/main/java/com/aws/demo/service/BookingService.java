@@ -18,4 +18,6 @@ public interface BookingService {
     BookingDto checkIn(MultipartFile multipartFile);
 
     byte[] getPhoto(String filename) throws IOException;
+
+    boolean testPPE(MultipartFile multipartFile);
 }

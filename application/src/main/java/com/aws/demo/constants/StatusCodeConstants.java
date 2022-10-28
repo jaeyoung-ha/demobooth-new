@@ -9,6 +9,9 @@ public final class StatusCodeConstants {
     public static String badRequestCodeInvalidParam = "40005000";
     public static String badRequestDescInvalidParam = "Invalid parameter from uploaded image";
 
+    public static String badRequestCodeCoveredMask = "40005001";
+    public static String badRequestDescCoveredMask = "Please take off your mask";
+
     // HTTP 상태코드 500
     public static String serverErrorCodeStorageUploadFail = "50005000";
     public static String serverErrorDescStorageUploadFail = "Failed to save image";

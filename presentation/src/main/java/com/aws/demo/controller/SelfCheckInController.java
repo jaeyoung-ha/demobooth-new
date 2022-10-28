@@ -163,10 +163,18 @@ public class SelfCheckInController {
     }
  */
 
+    @PostMapping("/testPPE")
+    public String testPPE(@RequestPart("file") MultipartFile multipartFile) {
+        bookingService.testPPE(multipartFile);
+
+        return "test";
+    }
 
     @DeleteMapping("/booking/{nickname}")
     public String deleteOrder(@PathVariable("nickname") String nickname) {
 
         return "delete success";
     }
+
+
 }

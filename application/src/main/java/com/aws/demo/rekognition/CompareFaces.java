@@ -22,7 +22,7 @@ public class CompareFaces {
     private Float similarityThreshold;
 
 
-    public boolean compareFace(String sourceImg, String targetImg) {
+    public Float compareFace(String sourceImg, String targetImg) {
         String sourceImage = sourceImg;
         String targetImage = targetImg;
 
@@ -48,21 +48,21 @@ public class CompareFaces {
                         + " " + position.getTop()
                         + " matches with " + match.getSimilarity().toString()
                         + "% confidence.");
-                return true;
+                return match.getSimilarity();
 
             }
             List<ComparedFace> uncompared = compareFacesResult.getUnmatchedFaces();
 
             log.info("There was " + uncompared.size() + " face(s) that did not match");
         } catch (InvalidParameterException e) {
-            log.error("Occurred InvalidParameterException : sourceImage : " + sourceImage +", targetImg : " + targetImg);
-            return false;
+            log.error("Occurred InvalidParameterException : sourceImage : " + sourceImage + ", targetImg : " + targetImg);
+            return 0F;
         } catch (Exception e) {
-            log.error("Occurred Exception : sourceImage : " + sourceImage +", targetImg : " + targetImg);
-            return false;
+            log.error("Occurred Exception : sourceImage : " + sourceImage + ", targetImg : " + targetImg);
+            return 0F;
         }
 
-        return false;
+        return 0F;
     }
 
     public boolean detectFacesinImage(String sourceImage) {
@@ -92,5 +92,69 @@ public class CompareFaces {
             e.printStackTrace();
         }
         return isDetectFaces;
+    }
+
+    public boolean detectPPE(String sourceImage) {
+        AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.standard().withRegion(Regions.AP_NORTHEAST_2).build();
+
+        Image source = new Image().withS3Object((new S3Object().withName(sourceImage).withBucket(s3_bucket)));
+
+        ProtectiveEquipmentSummarizationAttributes summaryAttributes = new ProtectiveEquipmentSummarizationAttributes()
+                .withMinConfidence(80F)
+                .withRequiredEquipmentTypes("FACE_COVER");
+
+        DetectProtectiveEquipmentRequest request = new DetectProtectiveEquipmentRequest()
+                .withImage(source)
+                .withSummarizationAttributes(summaryAttributes);
+
+        boolean isDetectMask = false;
+
+        try {
+            log.info("Detected PPE for people in image : " + sourceImage);
+            DetectProtectiveEquipmentResult result = rekognitionClient.detectProtectiveEquipment(request);
+
+            List<ProtectiveEquipmentPerson> persons = result.getPersons();
+
+            for (ProtectiveEquipmentPerson person : persons) {
+                log.info("ID: " + persons.size());
+
+                List<ProtectiveEquipmentBodyPart> bodyParts = person.getBodyParts();
+                log.info("bodyParts size : " + bodyParts.size());
+
+                if (!bodyParts.isEmpty()) {
+                    for (ProtectiveEquipmentBodyPart bodyPart : bodyParts) {
+                        List<EquipmentDetection> equipmentDetections = bodyPart.getEquipmentDetections();
+
+                        log.info("equipmentDetections size : " + equipmentDetections.size());
+
+                        if (!equipmentDetections.isEmpty()) {
+                            log.info("equipmentDetections log test");
+                            for (EquipmentDetection item : equipmentDetections) {
+                                if (item.getType().contentEquals("FACE_COVER")) {
+                                    log.info("Item: " + item.getType() + ". Confidence: " + item.getConfidence().toString());
+                                    if (item.getConfidence() > 80F) {
+                                        isDetectMask = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (isDetectMask) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (isDetectMask) {
+                    break;
+                }
+            }
+
+        } catch (AmazonRekognitionException e) {
+            e.printStackTrace();
+        }
+
+        log.info("The detected Mask is " + isDetectMask);
+
+        return isDetectMask;
     }
 }

@@ -83,6 +83,8 @@ public class BookingServiceImpl implements BookingService {
 
         // 1. Store Image file to S3
         String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.REGISTER);
+        log.info("uploadPhoto - s3 upload complete");
+
         if (TextUtils.isEmpty(fileName)) {
             BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
             returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
@@ -104,7 +106,17 @@ public class BookingServiceImpl implements BookingService {
             return returnDto;
         }
 
-        log.info("uploadPhoto - s3 upload complete");
+        // 2-1. Check Face Detect
+        boolean isDetectMask = compareFaces.detectPPE(fileName);
+        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
+
+        if (!isDetectMask) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
+            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
+
+            return returnDto;
+        }
 
         // 3. Update DB - photo Img
         reservationEntity.setPhotoImg(fileName);
@@ -157,7 +169,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         //3. Compare Face
-        boolean isCompared = false;
+        Float faceSimilarity = 0F;
 
         List<PhotoEntity> photoList = photoRepository.findPhotoTop50();
         String resultBookingId = "";
@@ -167,9 +179,9 @@ public class BookingServiceImpl implements BookingService {
         for (PhotoEntity entity : photoList) {
             resultPhotoImg = entity.getPhotoImg();
             log.info("checkIn - targetFile : " + resultPhotoImg);
-            isCompared = compareFaces.compareFace(fileName, resultPhotoImg);
+            faceSimilarity = compareFaces.compareFace(fileName, resultPhotoImg);
 
-            if (isCompared) {
+            if (faceSimilarity > 80F) {
                 log.info("checkIn - success");
                 resultBookingId = entity.getBookingId();
                 break;
@@ -180,7 +192,9 @@ public class BookingServiceImpl implements BookingService {
         // 3. Query from Reservation DB
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
-        if (!isCompared || TextUtils.isEmpty(resultBookingId)) {
+        bookingDto.setSimilarity(faceSimilarity);
+
+        if ((faceSimilarity < 80F) || TextUtils.isEmpty(resultBookingId)) {
             log.info("checkIn Fail!");
             bookingDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
             bookingDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
@@ -209,5 +223,30 @@ public class BookingServiceImpl implements BookingService {
 
         return photoImg;
 
+    }
+
+    @Override
+    public boolean testPPE(MultipartFile multipartFile) {
+        // 1. Check-In - Upload Photo
+        String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.REGISTER);
+        log.info("testPPE - sourceFile : " + fileName);
+//        if (TextUtils.isEmpty(fileName)) {
+//            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+//            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
+//            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
+//            return returnDto;
+//        }
+
+        // 2. Check Mask Detect
+        boolean isDetectPPE = compareFaces.detectPPE(fileName);
+        log.info("testPPE - isDetectPPE : " + isDetectPPE);
+
+//        if (!isDetectFaces) {
+//            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+//            returnDto.setErrCode(StatusCodeConstants.badRequestCodeInvalidParam);
+//            returnDto.setErrMsg(StatusCodeConstants.badRequestDescInvalidParam);
+//            return returnDto;
+//        }
+        return true;
     }
 }
