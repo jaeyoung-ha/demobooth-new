@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
         boolean isDetectMask = compareFaces.detectPPE(fileName);
         log.info("uploadPhoto - isDetectMask : " + isDetectMask);
 
-        if (!isDetectMask) {
+        if (isDetectMask) {
             BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
             returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
             returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
