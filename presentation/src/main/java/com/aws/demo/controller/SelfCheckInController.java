@@ -163,9 +163,9 @@ public class SelfCheckInController {
     }
  */
 
-    @PostMapping("/testPPE")
+    @PostMapping("/checkMaks")
     public String testPPE(@RequestPart("file") MultipartFile multipartFile) {
-        bookingService.testPPE(multipartFile);
+        bookingService.checkMask(multipartFile);
 
         return "test";
     }

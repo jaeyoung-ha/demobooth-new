@@ -19,5 +19,5 @@ public interface BookingService {
 
     byte[] getPhoto(String filename) throws IOException;
 
-    boolean testPPE(MultipartFile multipartFile);
+    boolean checkMask(MultipartFile multipartFile);
 }

@@ -29,7 +29,7 @@ s3:
   bucket-path: "demo-industry-week-2022"
 
 rekognition:
-  similarityThreshold: 80F
+  similarityThreshold: 70F
 
 
 ### Logging Level

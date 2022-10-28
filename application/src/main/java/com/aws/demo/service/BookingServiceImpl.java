@@ -106,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
             return returnDto;
         }
 
-        // 2-1. Check Face Detect
+        // 2-1. Check for Covered Mask
         boolean isDetectMask = compareFaces.detectPPE(fileName);
         log.info("uploadPhoto - isDetectMask : " + isDetectMask);
 
@@ -168,6 +168,18 @@ public class BookingServiceImpl implements BookingService {
             return returnDto;
         }
 
+        // 2-1. Check for Covered Mask
+        boolean isDetectMask = compareFaces.detectPPE(fileName);
+        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
+
+        if (isDetectMask) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
+            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
+
+            return returnDto;
+        }
+
         //3. Compare Face
         Float faceSimilarity = 0F;
 
@@ -175,31 +187,32 @@ public class BookingServiceImpl implements BookingService {
         String resultBookingId = "";
         String resultPhotoImg = "";
 
-
         for (PhotoEntity entity : photoList) {
             resultPhotoImg = entity.getPhotoImg();
             log.info("checkIn - targetFile : " + resultPhotoImg);
             faceSimilarity = compareFaces.compareFace(fileName, resultPhotoImg);
 
-            if (faceSimilarity > 80F) {
+            if (faceSimilarity > 70F) {
                 log.info("checkIn - success");
                 resultBookingId = entity.getBookingId();
                 break;
             }
         }
 
-
-        // 3. Query from Reservation DB
-        ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
-        BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
-        bookingDto.setSimilarity(faceSimilarity);
-
-        if ((faceSimilarity < 80F) || TextUtils.isEmpty(resultBookingId)) {
+        if ((faceSimilarity < 70F) || TextUtils.isEmpty(resultBookingId)) {
             log.info("checkIn Fail!");
-            bookingDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
-            bookingDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
-            return bookingDto;
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescRekognitionMatchFail);
+            return returnDto;
         }
+
+        // 3. Query/Update from Reservation DB
+        ReservationEntity reservationEntity = bookingRepository.findByBookingId(resultBookingId);
+        reservationEntity.setSimilarity(faceSimilarity);
+        bookingRepository.save(reservationEntity);
+
+        BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
 
         // 4. Update to Photo DB
         try {
@@ -226,16 +239,21 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public boolean testPPE(MultipartFile multipartFile) {
+    public boolean checkMask(MultipartFile multipartFile) {
+        return false;
+    }
+/*
+    @Override
+    public boolean checkMask(MultipartFile multipartFile) {
         // 1. Check-In - Upload Photo
         String fileName = storeImg(multipartFile, PhotoConstants.PhotoType.REGISTER);
-        log.info("testPPE - sourceFile : " + fileName);
-//        if (TextUtils.isEmpty(fileName)) {
-//            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
-//            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
-//            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
-//            return returnDto;
-//        }
+        log.info("checkMask - sourceFile : " + fileName);
+        if (TextUtils.isEmpty(fileName)) {
+            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+            returnDto.setErrCode(StatusCodeConstants.serverErrorCodeStorageUploadFail);
+            returnDto.setErrMsg(StatusCodeConstants.serverErrorDescStorageUploadFail);
+            return returnDto;
+        }
 
         // 2. Check Mask Detect
         boolean isDetectPPE = compareFaces.detectPPE(fileName);
@@ -249,4 +267,6 @@ public class BookingServiceImpl implements BookingService {
 //        }
         return true;
     }
+
+ */
 }

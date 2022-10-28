@@ -60,4 +60,7 @@ public class ReservationEntity implements Serializable {
 
     @Column
     private String photoImg;
+
+    @Column
+    private Float similarity;
 }
