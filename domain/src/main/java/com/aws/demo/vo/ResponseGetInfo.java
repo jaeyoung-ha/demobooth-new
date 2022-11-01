@@ -23,4 +23,5 @@ public class ResponseGetInfo {
     private Integer hotelChild;
     private String photoImg;
     private Float similarity;
+    private String password;
 }

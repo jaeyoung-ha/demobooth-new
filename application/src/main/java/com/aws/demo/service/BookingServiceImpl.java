@@ -64,6 +64,8 @@ public class BookingServiceImpl implements BookingService {
         ReservationEntity reservationEntity = bookingRepository.findByBookingId(bookingId);
         BookingDto bookingDto = DtoUtil.convertToReserveDto(reservationEntity);
 
+        bookingDto.setPassword(DtoUtil.makePassword());
+
         return bookingDto;
     }
 
