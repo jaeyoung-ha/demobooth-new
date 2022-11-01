@@ -26,7 +26,6 @@ public class DtoUtil {
 
     public static String makePassword() {
         String password = items[rand.nextInt(items.length)];
-        System.out.println("password" + password);
         return password;
     }
 }
