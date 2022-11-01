@@ -6,4 +6,4 @@ resources:
 images:
 - name: kustomization-eks-repository
   newName: 256676158104.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-demobooth
-  newTag: DEV_demoapp_1caa25f6
+  newTag: DEV_demoapp_e9ca62e5
