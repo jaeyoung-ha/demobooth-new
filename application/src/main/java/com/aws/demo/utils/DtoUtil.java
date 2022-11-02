@@ -21,7 +21,7 @@ public class DtoUtil {
         return mapper.map(reservationEntity, BookingDto.class);
     }
 
-    private static String[] items = {"1234*", "5678*", "2580*", "1470*", "3690*"};
+    private static String[] items = {"5678*", "2580*", "1470*", "3690*"};
     private static Random rand = new Random();
 
     public static String makePassword() {
