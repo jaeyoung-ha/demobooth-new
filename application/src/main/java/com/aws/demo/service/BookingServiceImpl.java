@@ -109,16 +109,16 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // 2-1. Check for Covered Mask
-        boolean isDetectMask = compareFaces.detectPPE(fileName);
-        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
-
-        if (isDetectMask) {
-            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
-            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
-            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
-
-            return returnDto;
-        }
+//        boolean isDetectMask = compareFaces.detectPPE(fileName);
+//        log.info("uploadPhoto - isDetectMask : " + isDetectMask);
+//
+//        if (isDetectMask) {
+//            BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
+//            returnDto.setErrCode(StatusCodeConstants.badRequestCodeCoveredMask);
+//            returnDto.setErrMsg(StatusCodeConstants.badRequestDescCoveredMask);
+//
+//            return returnDto;
+//        }
 
         // 3. Update DB - photo Img
         reservationEntity.setPhotoImg(fileName);
@@ -194,14 +194,14 @@ public class BookingServiceImpl implements BookingService {
             log.info("checkIn - targetFile : " + resultPhotoImg);
             faceSimilarity = compareFaces.compareFace(fileName, resultPhotoImg);
 
-            if (faceSimilarity > 70F) {
+            if (faceSimilarity > 80F) {
                 log.info("checkIn - success");
                 resultBookingId = entity.getBookingId();
                 break;
             }
         }
 
-        if ((faceSimilarity < 70F) || TextUtils.isEmpty(resultBookingId)) {
+        if ((faceSimilarity < 80F) || TextUtils.isEmpty(resultBookingId)) {
             log.info("checkIn Fail!");
             BookingDto returnDto = DtoUtil.convertToReserveDto(new ReservationEntity());
             returnDto.setErrCode(StatusCodeConstants.serverErrorCodeRekognitionMatchFail);
